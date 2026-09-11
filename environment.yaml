@@ -1,0 +1,10 @@
+# Mirror of ENVIRONMENT_NAME / ENVIRONMENT_CONFIG in scripts/setup-anthropic.ts; keep both in sync.
+# `ant apply environment.yaml` is an alternative to `npm run setup:anthropic`.
+name: managed-agent-env
+config:
+  type: cloud
+  networking:
+    # The agent reaches MCP_PUBLIC_URL over the public internet. Under `limited` networking that
+    # host must be in allowed_hosts (or allow_mcp_servers must be true), or sessions.create()
+    # fails with a 400 before the agent ever runs.
+    type: unrestricted

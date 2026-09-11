@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Time Off">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3B82F6"/>
+      <stop offset="1" stop-color="#2453CC"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- hanger tabs -->
+  <rect x="174" y="110" width="30" height="68" rx="15" fill="#FFFFFF"/>
+  <rect x="308" y="110" width="30" height="68" rx="15" fill="#FFFFFF"/>
+
+  <!-- calendar body -->
+  <rect x="120" y="146" width="272" height="250" rx="34" fill="#FFFFFF"/>
+
+  <!-- header strip -->
+  <path d="M120 180a34 34 0 0 1 34-34h204a34 34 0 0 1 34 34v36H120z" fill="#1E40AF"/>
+
+  <!-- day marks -->
+  <g fill="#9AA7BC">
+    <rect x="156" y="252" width="38" height="32" rx="11"/>
+    <rect x="318" y="252" width="38" height="32" rx="11"/>
+  </g>
+  <rect x="237" y="252" width="38" height="32" rx="11" fill="#3B82F6"/>
+
+  <!-- approved check -->
+  <path d="M196 334l38 38 82-88" fill="none" stroke="#16A34A" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
