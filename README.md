@@ -54,20 +54,46 @@ spinner resolves on its own.
 
 ## Architecture
 
+```mermaid
+flowchart TB
+    Employee(["Employee"])
+    Manager(["Manager"])
+
+    subgraph App["Next.js app — also the MCP server"]
+        Auth["Auth.js · Google OAuth<br/>offline access + calendar.events"]
+        Create["POST /api/requests"]
+        Decide["POST /api/requests/:id/decision"]
+        McpRoute["POST /api/mcp<br/>list_events · create_out_of_office"]
+        Hook["POST /api/webhooks/anthropic"]
+    end
+
+    DB[("SQLite<br/>Account tokens · VacationRequest")]
+
+    subgraph Managed["Anthropic Managed Agents"]
+        Vault["Vault · mcp_oauth credential<br/>the employee's Google token"]
+        Session["Session<br/>agent + environment + vault_ids"]
+    end
+
+    GCal["Google Calendar API"]
+
+    Employee -->|"1 · sign in"| Auth
+    Auth -->|"stores refresh + access token"| DB
+    Employee -->|"2 · request time off"| Create
+    Create -->|"PENDING"| DB
+    Manager -->|"3 · approve"| Decide
+    Decide -->|"APPROVED + QUEUED"| DB
+    Decide -->|"4 · after() → startCalendarJob()<br/>refresh the token, upsert the credential"| Vault
+    Vault -->|"vault_ids"| Session
+    Session -->|"5 · MCP call · bearer = employee's Google token"| McpRoute
+    McpRoute -->|"6 · create all-day block"| GCal
+    McpRoute -->|"7 · writes calendarEventId, SUCCEEDED"| DB
+    Session -.->|"8 · session.status_idled"| Hook
+    Hook -->|"reconcileJob() settles anything else"| DB
 ```
-Employee ──Google OAuth──▶ Next.js app ───────────────┐
-   │  POST /api/requests (PENDING)                     │ Prisma / SQLite
-Manager ── POST /api/requests/:id/decision ────────────┤
-   │  APPROVED → after() → startCalendarJob()          │
-   ▼                                                   │
-Anthropic Managed Agents                               │
-   vault (employee's Google token, mcp_oauth) ─┐       │
-   session(agent, environment, vault_ids) ─────┤       │
-   agent calls MCP tools ─── HTTPS ───▶ /api/mcp ◀─────┘  (writes calendarEventId)
-   │                                     │
-   └── webhook /api/webhooks/anthropic   └── Google Calendar API
-        (session idled/terminated → reconcileJob)
-```
+
+The app is on both ends of the loop: it starts the session, and it serves the MCP tools the agent
+then calls back into. Steps 6 and 7 are why the arrows converge — the tool call itself creates the
+event **and** records it, so the app never has to read the outcome out of the agent's reply.
 
 **Auth.** [frontend/src/auth.ts](frontend/src/auth.ts) requests
 `https://www.googleapis.com/auth/calendar.events` with `access_type=offline` and `prompt=consent`,
